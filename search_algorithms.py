@@ -10,7 +10,7 @@ Returns: (path, explored_list, elapsed_seconds)
 import time
 from collections import deque
 
-# Four-directional movement: up, down, left, right
+# Four-directional movement: left, down, right, up
 directions = [(0, -1), (1, 0), (0, 1), (-1, 0)]
 
 WALL  = 0
@@ -99,30 +99,44 @@ def dfs(grid, start):
     return None, explored, time.time() - t0
 
 
-def spread_fire(grid, steps=1):
-    """
-    Spreads fire outward by `steps` cells (BFS expansion).
-    Fire does not spread through walls.
-    Returns a new grid with updated fire positions.
-    """
+def spread_fire(grid, steps=44):
     import copy
-    g = copy.deepcopy(grid)
-    rows, cols = len(g), len(g[0])
 
-    for _ in range(steps):
-        sources = [
-            (r, c)
-            for r in range(rows)
-            for c in range(cols)
-            if g[r][c] == FIRE
-        ]
-        for r, c in sources:
-            for dr, dc in directions:
-                nr, nc = r + dr, c + dc
-                if 0 <= nr < rows and 0 <= nc < cols and g[nr][nc] == EMPTY:
-                    g[nr][nc] = FIRE
+    new_grid = copy.deepcopy(grid)
 
-    return g
+    number_of_rows = len(new_grid)
+    number_of_cols = len(new_grid[0])
+
+    for current_step in range(steps):
+
+        fire_positions = []
+
+        for row_index in range(number_of_rows):
+            for col_index in range(number_of_cols):
+
+                if new_grid[row_index][col_index] == FIRE:
+                    fire_positions.append((row_index, col_index))
+
+                col_index += 1
+            row_index += 1
+
+        for r,c in fire_positions:
+            current_row = r
+            current_col = c
+
+            for r,c in directions:
+                new_row = current_row + r
+                new_col = current_col + c
+
+                inside_rows = (0 <= new_row < number_of_rows)
+                inside_cols = (0 <= new_col < number_of_cols)
+
+                if inside_rows and inside_cols and new_grid[new_row][new_col] == EMPTY:
+                        new_grid[new_row][new_col] = FIRE
+
+        current_step += 1
+
+    return new_grid
 
 
 def _reconstruct(parent, node):
